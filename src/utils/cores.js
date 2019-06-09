@@ -21,7 +21,9 @@ const cores = {
 
   indexList: async (socket, done) => {
     const config = await cores.readConfig(socket);
-    if (done) done(_.get(config, indPath) || []);
+    const response = _.get(config, indPath) || [];
+    if (done) done(response);
+    return response;
   },
 
   indexUpdate: async (socket, done) => {
@@ -38,15 +40,24 @@ const cores = {
 
   search: async (searchTerm = '', socket, done) => {
     const res = await cli('cores.search', [searchTerm], socket, { emit: false });
-    if (done) done(JSON.stringify(res));
+    const response = JSON.parse(res);
+    if (done) done(response);
+    return response;
   },
 
   list: async (socket, done) => {
     const res = await cli('cores.list', [], socket, { emit: false });
-    if (done) done(JSON.stringify(res));
+    const response = JSON.parse(res);
+    if (done) done(response);
+    return response;
   },
 
   install: async (coreIds, socket, done) => {
+    if (!socket.coresAutoUpdated) {
+      await cores.indexUpdate();
+      // eslint-disable-next-line no-param-reassign
+      socket.coresAutoUpdated = true;
+    }
     await cli('cores.install', coreIds, socket);
     cores.list(socket, done);
   },
