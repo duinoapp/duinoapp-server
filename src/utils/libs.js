@@ -26,6 +26,7 @@ const libs = {
     return response;
   },
 
+  // Updates the libraries index.
   indexUpdate: async (socket, done) => {
     await cli('lib.update-index', [], socket);
     if (done) done();
@@ -38,6 +39,7 @@ const libs = {
     await libs.indexUpdate(socket, done);
   },
 
+  // Searchs for one or more libraries data.
   search: async (searchTerm = '', socket, done) => {
     const res = await cli('lib.search', [searchTerm], socket, { emit: false });
     const response = JSON.parse(res);
@@ -45,6 +47,7 @@ const libs = {
     return response;
   },
 
+  // Shows a list of all installed libraries.
   list: async (socket, done) => {
     const res = await cli('lib.list', [], socket, { emit: false });
     const response = JSON.parse(res);
@@ -52,6 +55,7 @@ const libs = {
     return response;
   },
 
+  // Installs one of more specified libraries into the system.
   install: async (libIds, socket, done) => {
     if (!socket.libsAutoUpdated) {
       await libs.indexUpdate();

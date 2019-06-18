@@ -18,19 +18,29 @@ const cores = {
     await fs.readFile(`${socket.tmpDir.path}/arduino-cli.yaml`, configFile);
   },
 
-
-  indexList: async (socket, done) => {
-    const config = await cores.readConfig(socket);
-    const response = _.get(config, indPath) || [];
-    if (done) done(response);
-    return response;
+  _autoUpdate: async (socket) => {
+    if (!socket.coresAutoUpdated) {
+      await cores.indexUpdate(socket);
+      // eslint-disable-next-line no-param-reassign
+      socket.coresAutoUpdated = true;
+    }
   },
 
+  // returns the indexes of cores used.
+  indexList: async (socket, done) => {
+    const config = await cores.readConfig(socket);
+    const res = _.get(config, indPath) || [];
+    if (done) done(res);
+    return res;
+  },
+
+  // Updates the index of cores.
   indexUpdate: async (socket, done) => {
-    await cli('cores.update-index', [], socket);
+    await cli('core.update-index', [], socket);
     if (done) done();
   },
 
+  // adds new core indexes
   indexNew: async (indexes, socket, done) => {
     const config = await cores.readConfig(socket);
     const existing = _.get(config, indPath) || [];
@@ -38,27 +48,28 @@ const cores = {
     await cores.indexUpdate(socket, done);
   },
 
+  // Search for a core in the package index.
   search: async (searchTerm = '', socket, done) => {
-    const res = await cli('cores.search', [searchTerm], socket, { emit: false });
-    const response = JSON.parse(res);
+    await cores._autoUpdate(socket);
+    const res = await cli('core.search', [searchTerm], socket, { emit: false });
+    const response = res ? JSON.parse(res) : [];
     if (done) done(response);
     return response;
   },
 
+  // Shows the list of installed platforms.
   list: async (socket, done) => {
-    const res = await cli('cores.list', [], socket, { emit: false });
+    await cores._autoUpdate(socket);
+    const res = await cli('core.list', [], socket, { emit: false });
     const response = JSON.parse(res);
     if (done) done(response);
     return response;
   },
 
+  // Installs one or more cores and corresponding tool dependencies.
   install: async (coreIds, socket, done) => {
-    if (!socket.coresAutoUpdated) {
-      await cores.indexUpdate();
-      // eslint-disable-next-line no-param-reassign
-      socket.coresAutoUpdated = true;
-    }
-    await cli('cores.install', coreIds, socket);
+    await cores._autoUpdate(socket);
+    await cli('core.install', coreIds, socket);
     cores.list(socket, done);
   },
 };

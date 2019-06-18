@@ -17,7 +17,7 @@ const initFiles = [
 
 io.on('connection', async (socket) => {
   await files.loadTempFiles(initFiles, socket);
-  await cores.indexUpdate(socket);
+  await cores._autoUpdate(socket);
   await libs.indexUpdate(socket);
 
   socket.on('files.new', (fileObjects, done) => files.loadTempFiles(fileObjects, socket, 'files', done));
@@ -47,4 +47,12 @@ io.on('connection', async (socket) => {
   socket.on('upload.start', (data, done) => program.upload(data, socket, done));
 
   socket.on('disconnect', () => socket.tmpDir.cleanup());
+
+  socket.emit('ready');
 });
+
+io.of('/ping').on('connect', (socket) => {
+  socket.on('p', done => done());
+});
+
+console.log(`🚀 Server Launched on localhost:${process.env.PORT || 3030}`);

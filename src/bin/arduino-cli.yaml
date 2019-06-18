@@ -2,4 +2,4 @@ board_manager:
   additional_urls:
     - http://arduino.esp8266.com/stable/package_esp8266com_index.json
 arduino_data: './data'
-downloads_dir: '../../data/arduino-downloads'
+downloads_dir: '../../data/arduino-downloads/'
