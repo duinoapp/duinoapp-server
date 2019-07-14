@@ -2,6 +2,7 @@
 require('dotenv').config();
 
 import fs from 'fs';
+import path from 'path';
 import socketio from 'socket.io';
 import files from './utils/files';
 import boards from './utils/boards';
@@ -12,7 +13,7 @@ import program from './utils/program';
 const io = socketio(process.env.PORT || 3030);
 
 const initFiles = [
-  { name: 'arduino-cli.yaml', content: fs.readFileSync(`${__dirname}/bin/arduino-cli.yaml`) },
+  { name: 'arduino-cli.yaml', content: fs.readFileSync(path.join(__dirname, '../bin/arduino-cli.yaml')) },
 ];
 
 io.on('connection', async (socket) => {
@@ -21,7 +22,7 @@ io.on('connection', async (socket) => {
   await libs.indexUpdate(socket);
 
   socket.on('files.new', (fileObjects, done) => files.loadTempFiles(fileObjects, socket, 'files', done));
-  socket.on('files.setSketch', (path, done) => files.setSketch(path, socket, 'files', done));
+  socket.on('files.setSketch', (sketchPath, done) => files.setSketch(sketchPath, socket, 'files', done));
 
   // socket.on('core.index.new', (indexes, done) => cores.indexNew(indexes, socket, done));
   // socket.on('core.index.list', done => cores.indexList(socket, done));

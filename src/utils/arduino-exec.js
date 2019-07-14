@@ -12,7 +12,7 @@ export default (commands, args, socket, options) => new Promise((resolve) => {
     if (opts.emit) socket.emit('console.log', data.toString('utf-8'));
   };
 
-  const exec = spawn(`${__dirname}/../bin/arduino-cli`, [
+  const exec = spawn(`${__dirname}/../../bin/arduino-cli`, [
     ...(Array.isArray(commands) ? commands : commands.split('.')),
     ..._.castArray(args).map(arg => `${`${arg}`.replace(/"/g, '')}`),
     '--config-file',

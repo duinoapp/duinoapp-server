@@ -13,13 +13,21 @@ const files = {
     }
   },
 
+  _initTmp: async () => {
+    const tmpDir = await tmp.dir({ prefix: 'cd-', unsafeCleanup: true });
+    await fs.mkdir(path.join(tmpDir.path, 'data'));
+    await fs.symlink(path.join(__dirname, '../../bin/staging'), path.join(tmpDir.path, 'data/staging'));
+    await fs.symlink(path.join(__dirname, '../../bin/packages'), path.join(tmpDir.path, 'data/packages'));
+    return tmpDir;
+  },
+
   loadTempFiles: async (fileItems, socket, sub = '', done) => {
     if (typeof sub !== 'string') {
       done = sub;
       sub = '';
     }
     // eslint-disable-next-line no-param-reassign
-    socket.tmpDir = socket.tmpDir || await tmp.dir({ prefix: 'cd-', unsafeCleanup: true });
+    socket.tmpDir = socket.tmpDir || await files._initTmp();
     // const id = socket.tmpDir.path.split('/').pop();
     await Promise.all(fileItems.map(async (file) => {
       const filepath = path.join(socket.tmpDir.path, sub, file.name);
