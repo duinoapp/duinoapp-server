@@ -14,11 +14,15 @@ const files = {
   },
 
   _initTmp: async () => {
-    const tmpDir = await tmp.dir({ prefix: 'cd-', unsafeCleanup: true });
-    await fs.mkdir(path.join(tmpDir.path, 'data'));
-    await fs.symlink(path.join(__dirname, '../../bin/staging'), path.join(tmpDir.path, 'data/staging'));
-    await fs.symlink(path.join(__dirname, '../../bin/packages'), path.join(tmpDir.path, 'data/packages'));
+    const tmpDir = await tmp.dir({ prefix: 'duino-', unsafeCleanup: true });
     return tmpDir;
+  },
+
+  cleanup: (socket) => {
+    if (socket.tmpDir) {
+      socket.tmpDir.cleanup();
+      delete socket.tmpDir;
+    }
   },
 
   loadTempFiles: async (fileItems, socket, sub = '', done) => {
@@ -33,21 +37,10 @@ const files = {
       const filepath = path.join(socket.tmpDir.path, sub, file.name);
       files.checkPath(filepath, socket, sub);
       await fs.writeFile(filepath, file.content);
+      if (/.ino$/.test(file.name)) socket.sketchPath = filepath;
     }));
-    if (done) done();
-  },
-
-  setSketch: (sketchPath, socket, sub = '', done) => {
-    if (typeof sub !== 'string') {
-      done = sub;
-      sub = '';
-    }
-    const fullPath = path.join(socket.tmpDir.path, sub, sketchPath);
-    files.checkPath(fullPath, socket, sub);
-    // eslint-disable-next-line no-param-reassign
-    socket.sketchPath = fullPath;
     if (done) done();
   },
 };
 
-export default files;
+module.exports = files;

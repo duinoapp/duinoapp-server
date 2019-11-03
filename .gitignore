@@ -1,3 +1,4 @@
 node_modules
-bin/packages/*/
-bin/staging/*/
+.env
+data/arduino/staging
+Arduino

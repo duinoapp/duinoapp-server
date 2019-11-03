@@ -1,10 +1,10 @@
 const { spawn } = require('child_process');
-const _ = require('lodash');
 
-export default (commands, args, socket, options) => new Promise((resolve) => {
-  const opts = Object.assign({}, {
-    emit: true,
-  }, options);
+module.exports = (commands, args, socket, options) => new Promise((resolve) => {
+  const opts = {
+    emit: !!socket,
+    ...options,
+  };
   let res = '';
   const log = (data) => {
     res += data.toString('utf-8');
@@ -12,16 +12,13 @@ export default (commands, args, socket, options) => new Promise((resolve) => {
     if (opts.emit) socket.emit('console.log', data.toString('utf-8'));
   };
 
-  const exec = spawn(`${__dirname}/../../bin/arduino-cli`, [
+  const exec = spawn(`${__dirname}/../../arduino-cli`, [
     ...(Array.isArray(commands) ? commands : commands.split('.')),
-    ..._.castArray(args).map(arg => `${`${arg}`.replace(/"/g, '')}`),
-    '--config-file',
-    `${socket.tmpDir.path}/arduino-cli.yaml`,
-    '--format',
-    'json',
-  ], { cwd: socket.tmpDir.path });
-  exec.stdout.on('data', data => log(data));
-  exec.stderr.on('data', data => log(data));
+    ...(Array.isArray(args) ? args : [args]).map((arg) => `${`${arg}`.replace(/"/g, '')}`),
+    ...(process.env.CLI_ARGS || `--config-file ${__dirname}/../../data/arduino-cli.yml --format json`).split(' '),
+  ], { cwd: socket ? socket.tmpDir.path : `${__dirname}/../../` });
+  exec.stdout.on('data', (data) => log(data));
+  exec.stderr.on('data', (data) => log(data));
 
   exec.on('close', () => resolve(res));
 });
