@@ -44,7 +44,7 @@ const processedCores = cores.map(lowerCaseKeys);
 let processedBoards = boards;
 processedCores.forEach((core) => {
   const [pack, arch] = core.id.split(':');
-  const path = `${__dirname}/../../data/arduino/packages/${pack}/hardware/${arch}/${core.latest}/boards.txt`;
+  const path = `/home/duino/.arduino15/packages/${pack}/hardware/${arch}/${core.latest}/boards.txt`;
   const props = processFile(path);
   processedBoards = processedBoards.map((board) => (!board.fqbn.includes(`${core.id}:`) ? board : {
     ...board,

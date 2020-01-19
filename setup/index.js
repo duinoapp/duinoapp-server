@@ -5,7 +5,7 @@ const libs = require('../data/libs.json').libraries;
 // eslint-disable-next-line import/no-unresolved
 const cores = require('../data/cores.json');
 
-const cli = (commands, args) => new Promise((resolve) => {
+const cli = (commands, args, consoleLog = false) => new Promise((resolve) => {
   let res = '';
   const exec = spawn(`${__dirname}/../arduino-cli`, [
     ...(Array.isArray(commands) ? commands : commands.split('.')),
@@ -14,7 +14,10 @@ const cli = (commands, args) => new Promise((resolve) => {
   ], { cwd: `${__dirname}/../` });
 
   exec.on('close', () => resolve(res));
-  const log = (data) => { res += data.toString('utf-8'); };
+  const log = (data) => {
+    if (consoleLog) console.log(data.toString('utf-8'));
+    res += data.toString('utf-8');
+  };
   exec.stdout.on('data', log);
   exec.stderr.on('data', log);
 });
@@ -22,13 +25,13 @@ const cli = (commands, args) => new Promise((resolve) => {
 const loadLibs = () => libs.reduce(async (a, lib, i) => {
   await a;
   console.log(`Libs (${i + 1}/${libs.length}) Installing ${lib.name}`);
-  await cli('lib.install', lib.name);
+  await cli('lib.install', lib.name, true);
 }, Promise.resolve());
 
 const loadCores = () => cores.reduce(async (a, core, i) => {
   await a;
   console.log(`Cores (${i + 1}/${cores.length}) Installing ${core.Name} (${core.ID})`);
-  await cli('core.install', core.ID);
+  await cli('core.install', core.ID, true);
 }, Promise.resolve());
 
 const loadBoards = async () => {

@@ -36,6 +36,11 @@ const files = {
     await Promise.all(fileItems.map(async (file) => {
       const filepath = path.join(socket.tmpDir.path, sub, file.name);
       files.checkPath(filepath, socket, sub);
+      try {
+        const parts = filepath.split('/');
+        parts.pop();
+        await fs.mkdir(parts.join('/'), { recursive: true });
+      } catch (err) { console.error(err); }
       await fs.writeFile(filepath, file.content);
       if (/.ino$/.test(file.name)) socket.sketchPath = filepath;
     }));
