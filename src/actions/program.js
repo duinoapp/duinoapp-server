@@ -1,4 +1,5 @@
 /* eslint-disable no-param-reassign */
+const fs = require('fs').promises;
 const net = require('net');
 const cli = require('../utils/arduino-exec');
 const tmpFiles = require('../utils/files');
@@ -22,16 +23,16 @@ const program = {
     await tmpFiles.loadTempFiles(files, socket);
     const res = await cli('compile', ['-v', '--warnings', 'all', '--fqbn', fqbn, socket.sketchPath], socket);
     const response = program.getError(res);
-    tmpFiles.cleanup(socket);
+    // tmpFiles.cleanup(socket);
     if (done) done(response);
     return response;
   },
 
-  upload: async ({ id = program.randId(), fqbn, files }, socket, done) => {
+  upload: async ({ id = program.randId(), fqbn }, socket, done) => {
     if (socket.uploading) return { Message: 'Already uploading, please hold.', Cause: 'Upload already initiated.' };
     socket.uploading = id;
     socket.emit('upload.id', id);
-    await tmpFiles.loadTempFiles(files, socket);
+    // await tmpFiles.loadTempFiles(files, socket);
 
     const sock = net.createServer((stream) => {
       stream.on('data', (buff) => {
@@ -52,9 +53,43 @@ const program = {
     sock.close();
     socket.uploading = null;
     const response = program.getError(res);
-    tmpFiles.cleanup(socket);
+    // tmpFiles.cleanup(socket);
     if (done) done(response);
     return response;
+  },
+
+  legacyCompile: async ({ fqbn, content }) => {
+    const session = {};
+    const files = [{ name: 'legacy/legacy.ino', content }];
+    await tmpFiles.loadTempFiles(files, session);
+    const res = await cli('compile', [
+      '-v',
+      '--warnings',
+      'all',
+      '--fqbn',
+      fqbn,
+      '--output',
+      `${session.sketchPath}/legacy`,
+      session.sketchPath,
+    ]);
+    const err = program.getError(res);
+    if (err) {
+      return {
+        success: false,
+        msg: err.Cause,
+        code: err.Code,
+        stdout: '',
+        stderr: res,
+      };
+    }
+    const hex = await fs.readFile(`${session.sketchPath}/legacy.hex`, 'base64');
+    tmpFiles.cleanup(session);
+    return {
+      success: true,
+      hex,
+      stdout: res,
+      stderr: '',
+    };
   },
 
 };

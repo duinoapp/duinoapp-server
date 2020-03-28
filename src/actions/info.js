@@ -52,8 +52,30 @@ processedCores.forEach((core) => {
   }));
 });
 
+const legacyBoards = {};
+processedBoards
+  .filter((board) => board.fqbn.includes('arduino:avr'))
+  .forEach((board) => {
+    const cpuOpt = board.config_options && board.config_options.find((opt) => opt.option === 'cpu');
+    if (cpuOpt) {
+      cpuOpt.values.forEach((cpuVal) => {
+        legacyBoards[`${board.fqbn}:cpu=${cpuVal.value}`] = {
+          name: `${board.name} / ${cpuVal.value_label}`,
+          upload_speed: board.properties.upload.speed,
+        };
+      });
+    } else {
+      legacyBoards[board.fqbn] = {
+        name: board.name,
+        upload_speed: board.properties.upload.speed,
+      };
+    }
+  });
+
 module.exports.libraries = (socket, done) => done && done(processedLibs);
 
 module.exports.cores = (socket, done) => done && done(processedCores);
 
 module.exports.boards = (socket, done) => done && done(processedBoards);
+
+module.exports.legacyBoards = legacyBoards;

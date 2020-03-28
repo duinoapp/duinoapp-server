@@ -1,19 +1,19 @@
-FROM node:10-alpine
+FROM node:10-buster
 
 USER root
-RUN addgroup -S duino && adduser -S duino -G duino
+RUN useradd duino
 
 COPY setup /home/duino/setup
 COPY data /home/duino/data
 # COPY Arduino /home/duino/Arduino
 
 RUN chown duino:duino /home/duino -R
-RUN apk update && apk add build-base
+RUN apt-get update && apt-get install build-essential
 
 WORKDIR /home/duino
 USER duino
 
-RUN wget https://github.com/arduino/arduino-cli/releases/download/0.7.2/arduino-cli_0.7.2_Linux_64bit.tar.gz -O - | tar -xz
+RUN wget https://github.com/arduino/arduino-cli/releases/download/0.9.0/arduino-cli_0.9.0_Linux_64bit.tar.gz -O - | tar -xz
 
 RUN ls
 

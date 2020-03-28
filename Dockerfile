@@ -5,7 +5,7 @@ COPY package*.json /home/duino/
 RUN chown duino:duino /home/duino/package*.json
 USER duino
 
-RUN npm i
+RUN npm ci
 
 USER root
 COPY src /home/duino/src

@@ -36,13 +36,14 @@ const files = {
     await Promise.all(fileItems.map(async (file) => {
       const filepath = path.join(socket.tmpDir.path, sub, file.name);
       files.checkPath(filepath, socket, sub);
+      const parts = filepath.split('/');
+      parts.pop();
+      const folder = parts.join('/');
       try {
-        const parts = filepath.split('/');
-        parts.pop();
-        await fs.mkdir(parts.join('/'), { recursive: true });
+        await fs.mkdir(folder, { recursive: true });
       } catch (err) { console.error(err); }
       await fs.writeFile(filepath, file.content);
-      if (/.ino$/.test(file.name)) socket.sketchPath = filepath;
+      if (/.ino$/.test(file.name)) socket.sketchPath = folder;
     }));
     if (done) done();
   },

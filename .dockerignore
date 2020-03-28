@@ -1,0 +1,4 @@
+base-all
+Arduino
+node_modules
+.env

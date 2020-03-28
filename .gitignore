@@ -1,4 +1,4 @@
 node_modules
 .env
-data/arduino/staging
+base-all/data/arduino/staging
 Arduino
