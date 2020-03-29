@@ -1,4 +1,4 @@
-FROM duino-docker-base:latest
+FROM duinoapp/arduino-cli-base:latest
 
 USER root
 COPY package*.json /home/duino/
