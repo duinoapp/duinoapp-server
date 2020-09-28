@@ -1,0 +1,33 @@
+version: "2.1"
+services:
+  swag:
+    image: linuxserver/swag
+    container_name: swag
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - URL=duino.app # update this, main domain
+      - SUBDOMAINS=au # update this, subdomain of compile server
+      - VALIDATION=http
+      - EMAIL=jane@example.com # update this, contact email for letsencrypt incase something goes wrong
+      - ONLY_SUBDOMAINS=true # update this, only encypt subdomains (au.duino.app)
+    volumes:
+      - /home/ubuntu/nginx:/config # update this, location on main server for nginx configs
+    ports:
+      - 443:443
+      - 80:80
+    restart: unless-stopped
+    links:
+      - duinoapp
+  duinoapp:
+    image: duinoapp/duinoapp-server:latest
+    container_name: duinoapp
+    environment: # update these, server info displayed to users
+      - SERVER_INFO_NAME="Australian Server"
+      - SERVER_INFO_LOCATION="Australia/Sydney"
+      - SERVER_INFO_COUNTRY="AU"
+      - SERVER_INFO_OWNER="Duino App"
+      - SERVER_INFO_WEBSITE="duino.app"
+      - SERVER_INFO_DESCRIPTION="Server run on Vegemite"

@@ -9,20 +9,30 @@ const program = {
   randId: () => Math.random().toString(16).substr(2),
 
   getError: (res) => {
-    let obj;
+    let error;
     try {
-      obj = JSON.parse(res.split('\n').pop());
+      error = JSON.parse(res.split('\n').pop());
     } catch (err) {
-      return null;
+      return {};
     }
-    if (obj && obj.Cause) return obj;
-    return null;
+    if (error && error.Cause) return { error };
+    return {};
   },
 
-  compile: async ({ fqbn, files }, socket, done) => {
+  compile: async ({ fqbn, files, noHex = false }, socket, done) => {
     await tmpFiles.loadTempFiles(files, socket);
-    const res = await cli('compile', ['-v', '--warnings', 'all', '--fqbn', fqbn, socket.sketchPath], socket);
+    const res = await cli('compile', [
+      '-v',
+      '--warnings', 'all',
+      '--fqbn', fqbn,
+      ...(!noHex ? ['--output', `${socket.sketchPath}/output`] : []),
+      socket.sketchPath,
+    ], socket);
     const response = program.getError(res);
+    if (!response.error && !noHex) {
+      const hex = await fs.readFile(`${socket.sketchPath}/output.hex`, 'base64');
+      response.hex = hex;
+    }
     // tmpFiles.cleanup(socket);
     if (done) done(response);
     return response;
@@ -72,12 +82,12 @@ const program = {
       `${session.sketchPath}/legacy`,
       session.sketchPath,
     ]);
-    const err = program.getError(res);
-    if (err) {
+    const response = program.getError(res);
+    if (response.error) {
       return {
         success: false,
-        msg: err.Cause,
-        code: err.Code,
+        msg: response.error.Cause,
+        code: response.error.Code,
         stdout: '',
         stderr: res,
       };

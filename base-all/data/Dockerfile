@@ -4,7 +4,7 @@ USER root
 RUN useradd duino
 
 COPY setup /home/duino/setup
-COPY data /home/duino/data
+# COPY data /home/duino/data
 # COPY Arduino /home/duino/Arduino
 
 RUN chown duino:duino /home/duino -R
@@ -13,8 +13,9 @@ RUN apt-get update && apt-get install build-essential
 WORKDIR /home/duino
 USER duino
 
-RUN wget https://github.com/arduino/arduino-cli/releases/download/0.9.0/arduino-cli_0.9.0_Linux_64bit.tar.gz -O - | tar -xz
+RUN wget https://github.com/arduino/arduino-cli/releases/download/0.13.0/arduino-cli_0.13.0_Linux_64bit.tar.gz -O - | tar -xz
 
+RUN mkdir data
 RUN ls
 
 ENV CLI_ARGS="--config-file /home/duino/data/arduino-cli.yml --format json"
