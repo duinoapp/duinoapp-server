@@ -11,11 +11,11 @@ VPS = Virtual Private Server
 3. SSH into the VPS, you can usually do this from the Digital Ocean web interface.
 4. Run the command (This will take a while)
 
-   `curl -s -L https://github.com/duinoapp/duinoapp-server/blob/master/deployment/init-server.sh | sudo bash`
-5. Run the command `nano docker-compose.yml`
+   `curl -s -L https://raw.githubusercontent.com/duinoapp/duinoapp-server/master/deployment/init-server.sh | sudo bash`
+5. Run the command `sudo nano docker-compose.yml`
 6. Edit the content of the file where indicated, you should enter details like the domain, subdomain, email, server info
 7. When done editing, press `Ctl+X`, `Y`, and then `Enter`
-8. Run `docker-compose up -d`
+8. Run `sudo docker-compose up -d`
 
 The server should now be available on your subdomain.
 
