@@ -9,7 +9,9 @@ VPS = Virtual Private Server
 1. Create the VPS, Digital Ocean droplets are usually good for beginners (cheapest will do)
 2. Point your subdomain to the VPS (this will be an A record with the VPS's public IP)
 3. SSH into the VPS, you can usually do this from the Digital Ocean web interface.
-4. Run the command `<insert command here>` (This will take a while)
+4. Run the command (This will take a while)
+
+   `curl -s -L https://github.com/duinoapp/duinoapp-server/blob/master/deployment/init-server.sh | sudo bash`
 5. Run the command `nano docker-compose.yml`
 6. Edit the content of the file where indicated, you should enter details like the domain, subdomain, email, server info
 7. When done editing, press `Ctl+X`, `Y`, and then `Enter`

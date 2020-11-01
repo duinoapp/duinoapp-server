@@ -24,10 +24,11 @@ services:
   duinoapp:
     image: duinoapp/duinoapp-server:latest
     container_name: duinoapp
+    restart: unless-stopped
     environment: # update these, server info displayed to users
-      - SERVER_INFO_NAME="Australian Server"
+      - SERVER_INFO_NAME="Example Server"
       - SERVER_INFO_LOCATION="Australia/Sydney"
       - SERVER_INFO_COUNTRY="AU"
       - SERVER_INFO_OWNER="Duino App"
       - SERVER_INFO_WEBSITE="duino.app"
-      - SERVER_INFO_DESCRIPTION="Server run on Vegemite"
+      - SERVER_INFO_DESCRIPTION="Just Another Example Server"
