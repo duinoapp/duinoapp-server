@@ -25,6 +25,8 @@ services:
     image: duinoapp/duinoapp-server:latest
     container_name: duinoapp
     restart: unless-stopped
+    volumes:
+      - duinoapp-lib-downloads:/data
     environment: # update these, server info displayed to users
       - SERVER_INFO_NAME=Example Server
       - SERVER_INFO_LOCATION=Australia/Sydney
@@ -33,3 +35,5 @@ services:
       - SERVER_INFO_OWNER=Jane Smith
       - SERVER_INFO_WEBSITE=site.example.com
       - SERVER_INFO_DESCRIPTION=Just Another Example Server
+volumes:
+  duinoapp-lib-downloads:

@@ -36,6 +36,7 @@ io.on('connection', async (socket) => {
   socket.on('info.server', (done) => info.server(socket, done));
   socket.on('info.cores', (done) => info.cores(socket, done));
   socket.on('info.libraries', (done) => info.libraries(socket, done));
+  socket.on('info.librariesSearch', (data, done) => info.librariesSearch(data, socket, done));
   socket.on('info.boards', (done) => info.boards(socket, done));
 
   socket.on('compile.start', (data, done) => program.compile(data, socket, done));

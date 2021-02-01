@@ -19,18 +19,21 @@ const program = {
     return {};
   },
 
-  compile: async ({ fqbn, files, noHex = false }, socket, done) => {
+  compile: async ({
+    fqbn, files, noHex = false, flags = {},
+  }, socket, done) => {
     await tmpFiles.loadTempFiles(files, socket);
     const res = await cli('compile', [
-      '-v',
+      ...(flags.verbose ? ['-v'] : []),
       '--warnings', 'all',
       '--fqbn', fqbn,
-      ...(!noHex ? ['--output', `${socket.sketchPath}/output`] : []),
+      ...(!noHex ? ['--output-dir', `${socket.sketchPath}/output`] : []),
       socket.sketchPath,
-    ], socket);
+    ], socket, { noJson: true });
     const response = program.getError(res);
     if (!response.error && !noHex) {
-      const hex = await fs.readFile(`${socket.sketchPath}/output.hex`, 'base64');
+      const ref = socket.sketchPath.split('/').pop();
+      const hex = await fs.readFile(`${socket.sketchPath}/output/${ref}.ino.hex`, 'base64');
       response.hex = hex;
     }
     // tmpFiles.cleanup(socket);
@@ -38,7 +41,7 @@ const program = {
     return response;
   },
 
-  upload: async ({ id = program.randId(), fqbn }, socket, done) => {
+  upload: async ({ id = program.randId(), fqbn, flags = {} }, socket, done) => {
     if (socket.uploading) return { Message: 'Already uploading, please hold.', Cause: 'Upload already initiated.' };
     socket.uploading = id;
     socket.emit('upload.id', id);
@@ -58,7 +61,13 @@ const program = {
     const port = 4000 + Math.floor(Math.random() * 1000);
     sock.listen(port);
 
-    const res = await cli('upload', ['-p', `net:localhost:${port}`, '-v', '--fqbn', fqbn, socket.sketchPath], socket);
+    const res = await cli('upload', [
+      '-p', `net:localhost:${port}`,
+      ...(flags.verbose ? ['-v'] : []),
+      ...(flags.programmer ? ['-P', flags.programmer] : []),
+      '--fqbn', fqbn,
+      socket.sketchPath,
+    ], socket, { noJson: true });
 
     sock.close();
     socket.uploading = null;
@@ -78,10 +87,10 @@ const program = {
       'all',
       '--fqbn',
       fqbn,
-      '--output',
+      '--output-dir',
       `${session.sketchPath}/legacy`,
       session.sketchPath,
-    ]);
+    ], null, { noJson: true });
     const response = program.getError(res);
     if (response.error) {
       return {
@@ -92,7 +101,8 @@ const program = {
         stderr: res,
       };
     }
-    const hex = await fs.readFile(`${session.sketchPath}/legacy.hex`, 'base64');
+    const ref = session.sketchPath.split('/').pop();
+    const hex = await fs.readFile(`${session.sketchPath}/legacy/${ref}.ino.hex`, 'base64');
     tmpFiles.cleanup(session);
     return {
       success: true,

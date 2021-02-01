@@ -5,6 +5,8 @@ const cores = require('../../data/cores.json');
 const libs = require('../../data/libs.json');
 const boards = require('../../data/boards.json');
 
+const searchRegex = (search = '') => new RegExp(`(${search.replace(/[^\w-\s]/g, '.').split(/\s+/g).join(')|(')})`, 'i');
+
 module.exports.server = (socket, done) => done && done({
   name: process.env.SERVER_INFO_NAME || 'Test Compile Server',
   location: process.env.SERVER_INFO_LOCATION || 'Unknown',
@@ -45,7 +47,13 @@ let processedBoards = boards;
 processedCores.forEach((core) => {
   const [pack, arch] = core.id.split(':');
   const path = `/home/duino/.arduino15/packages/${pack}/hardware/${arch}/${core.latest}/boards.txt`;
-  const props = processFile(path);
+  let props;
+  try {
+    props = processFile(path);
+  } catch (err) {
+    if (!err.message.includes('no such file or directory')) throw err;
+    props = processFile(path.replace('arduino-beta', 'arduino'));
+  }
   processedBoards = processedBoards.map((board) => (!board.fqbn.includes(`${core.id}:`) ? board : {
     ...board,
     properties: props[board.fqbn.split(':')[2]],
@@ -71,6 +79,23 @@ processedBoards
       };
     }
   });
+
+module.exports.librariesSearch = (data, socket, done) => {
+  if (!done) return;
+  const limit = Math.min(Math.max(data.limit || 10, 1), 100);
+  const skip = Math.max(data.skip || 0, 0);
+  const reg = searchRegex(data.search);
+  const { sortBy = 'name', sortDesc = false } = data;
+  const res = processedLibs.filter((lib) => reg.test(lib.name)).sort((a, b) => {
+    const ai = `${a[sortBy]}`.toLowerCase();
+    const bi = `${b[sortBy]}`.toLowerCase();
+    if (ai === bi) return 0;
+    return (ai < bi ? -1 : 1) * (sortDesc ? -1 : 1);
+  });
+  done({
+    limit, skip, total: res.length, data: res.slice(skip * limit, (skip + 1) * limit),
+  });
+};
 
 module.exports.libraries = (socket, done) => done && done(processedLibs);
 

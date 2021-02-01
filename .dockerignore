@@ -1,4 +1,5 @@
-base-all
+base-all/data/arduino
+base-all/data/arduino-downloads
 Arduino
 node_modules
 .env
