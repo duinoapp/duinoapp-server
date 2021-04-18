@@ -2,6 +2,12 @@
 const fs = require('fs').promises;
 const path = require('path');
 const tmp = require('tmp-promise');
+const { v3 } = require('uuid');
+const downloadFile = require('./download-file');
+
+const libNS = '404e901a-0521-47f5-8fcf-74f7f7a1dfc9';
+const libDownloadPath = '/mnt/duino-data/lib-downloads';
+
 // TODO set up symlink to staging files (downloads)
 const files = {
 
@@ -46,6 +52,28 @@ const files = {
       if (/.ino$/.test(file.name)) socket.sketchPath = folder;
     }));
     if (done) done();
+  },
+
+  libPath: (url) => path.join(libDownloadPath, `${v3(url, libNS)}.zip`),
+
+  loadTempLibs: async (libs, socket, done) => {
+    const libPath = path.join(socket.tmpDir.path, 'libraries');
+    const results = await Promise.all(libs.map(async (lib) => {
+      const filePath = files.libPath(lib.url);
+      console.log(lib.url, filePath, libPath);
+      try {
+        await downloadFile(lib.url, filePath, 'unzip', libPath, true);
+      } catch (err) {
+        return err;
+      }
+      return null;
+    }));
+    socket.libPath = libPath;
+    const res = `${libs
+      .map((lib, i) => `Installing ${lib.name}..... ${results[i] ? `Failed: ${results[i].message}` : 'Success'}\r\n`)
+      .join('')}${libs.length ? '\r\n' : ''}`;
+    if (done) done(res);
+    return res;
   },
 };
 

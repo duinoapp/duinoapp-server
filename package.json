@@ -1,6 +1,6 @@
 {
   "name": "duinoapp-server",
-  "version": "1.0.0",
+  "version": "3.2.0",
   "description": "",
   "main": "src/index.js",
   "scripts": {
@@ -11,20 +11,28 @@
   "author": "Fraser Bullock",
   "license": "GPL-3.0",
   "dependencies": {
+    "adm-zip": "^0.5.4",
+    "aws-sdk": "^2.875.0",
+    "axios": "^0.21.1",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "express-status-monitor": "^1.2.9",
     "helmet": "^3.22.0",
-    "http-auth": "^4.1.2",
-    "http-auth-connect": "^1.0.4",
+    "js-binary": "^1.2.0",
+    "lodash": "^4.17.21",
     "properties": "^1.2.1",
-    "socket.io": "^2.3.0",
-    "tmp-promise": "^2.0.2"
+    "serverless-http": "^2.7.0",
+    "socket.io": "^2.4.1",
+    "tar": "^6.1.0",
+    "tmp-promise": "^2.0.2",
+    "uuid": "^8.3.2",
+    "yaml": "^1.10.2"
   },
   "devDependencies": {
     "eslint": "^6.4.0",
     "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-plugin-import": "^2.18.2"
+    "eslint-plugin-import": "^2.18.2",
+    "serverless": "^2.31.0",
+    "serverless-iam-roles-per-function": "^3.1.0"
   }
 }

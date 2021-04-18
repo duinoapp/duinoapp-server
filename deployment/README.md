@@ -2,7 +2,7 @@
 
 Theses are some files to help make deploying on a remote server easier.
 This assumes a fresh VPS with Ubuntu 20 +, that is only going to be used as
-a compile server. A minimum of 20GB of storage is required.
+a compile server.
 
 VPS = Virtual Private Server
 

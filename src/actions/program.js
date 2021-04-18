@@ -20,22 +20,29 @@ const program = {
   },
 
   compile: async ({
-    fqbn, files, noHex = false, flags = {},
+    fqbn, files, noHex = false, flags = {}, libs = [],
   }, socket, done) => {
     await tmpFiles.loadTempFiles(files, socket);
+    const libRes = await tmpFiles.loadTempLibs(libs, socket);
     const res = await cli('compile', [
       ...(flags.verbose ? ['-v'] : []),
       '--warnings', 'all',
       '--fqbn', fqbn,
+      '--libraries', socket.libPath,
       ...(!noHex ? ['--output-dir', `${socket.sketchPath}/output`] : []),
       socket.sketchPath,
     ], socket, { noJson: true });
     const response = program.getError(res);
     if (!response.error && !noHex) {
       const ref = socket.sketchPath.split('/').pop();
-      const hex = await fs.readFile(`${socket.sketchPath}/output/${ref}.ino.hex`, 'base64');
-      response.hex = hex;
+      try {
+        const hex = await fs.readFile(`${socket.sketchPath}/output/${ref}.ino.hex`, 'base64');
+        response.hex = hex;
+      } catch (err) {
+        console.error(err);
+      }
     }
+    response.log = libRes + res;
     // tmpFiles.cleanup(socket);
     if (done) done(response);
     return response;

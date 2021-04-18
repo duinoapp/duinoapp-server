@@ -1,0 +1,174 @@
+service: duinoapp-server
+
+
+plugins:
+  - serverless-iam-roles-per-function
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: ${file(./sls-config.yml):custom.stage}
+  region: ${file(./sls-config.yml):custom.region}
+  profile: ${file(./sls-config.yml):custom.profile}
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "elasticfilesystem:ClientMount"
+            - "elasticfilesystem:ClientWrite"
+            - "elasticfilesystem:DescribeMountTargets"
+          Resource: ${file(./sls-config.yml):custom.efsArn}
+
+functions:
+  app-info:
+    handler: serverless/handler.server
+    events:
+    - schedule: rate(5 minutes) # Keep Warm
+    - http:
+        method: GET
+        path: /version
+        cors:
+          origin: '*'
+    - http:
+        method: GET
+        path: /boards
+        cors:
+          origin: '*'
+    - http:
+        method: GET
+        path: /libraries
+        cors:
+          origin: '*'
+    - http:
+        method: GET
+        path: /v3/info/server
+        cors:
+          origin: '*'
+    - http:
+        method: GET
+        path: /v3/info/cores
+        cors:
+          origin: '*'
+    - http:
+        method: GET
+        path: /v3/info/boards
+        cors:
+          origin: '*'
+    - http:
+        method: GET
+        path: /v3/info/libraries
+        cors:
+          origin: '*'
+    memorySize: 128
+    timeout: 15
+    vpc: ${file(./sls-config.yml):custom.vpc}
+    fileSystemConfig:
+      arn: ${file(./sls-config.yml):custom.efsArn}
+      localMountPath: /mnt/duino-data
+
+  app-compile:
+    handler: serverless/handler.server
+    events:
+    - schedule: rate(5 minutes) # Keep Warm
+    - http:
+        method: POST
+        path: /compile
+        cors:
+          origin: '*'
+    - http:
+        method: POST
+        path: /v3/compile
+        cors:
+          origin: '*'
+    memorySize: 512
+    timeout: 30
+    vpc: ${file(./sls-config.yml):custom.vpc}
+    fileSystemConfig:
+      arn: ${file(./sls-config.yml):custom.efsArn}
+      localMountPath: /mnt/duino-data
+
+  cache-libs:
+    handler: serverless/libs.cache
+    memorySize: 128
+    timeout: 30
+    events:
+    - schedule: rate(5 minutes) # Keep Warm
+    - http:
+        method: POST
+        path: /v3/libraries/cache
+        cors:
+          origin: '*'
+    iamRoleStatementsInherit: true
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - s3:PutObject
+          - s3:GetObject
+        Resource: "arn:aws:s3:::${file(./sls-config.yml):custom.s3LibCache}/*"
+      - Effect: "Allow"
+        Action:
+          - lambda:InvokeFunction
+          - lambda:InvokeAsync
+        Resource: "arn:aws:lambda:${file(./sls-config.yml):custom.region}:*:function:duinoapp-server-${file(./sls-config.yml):custom.stage}-save-libs"
+
+  save-libs:
+    handler: serverless/libs.save
+    memorySize: 128
+    timeout: 15
+    vpc: ${file(./sls-config.yml):custom.vpc}
+    fileSystemConfig:
+      arn: ${file(./sls-config.yml):custom.efsArn}
+      localMountPath: /mnt/duino-data
+    iamRoleStatementsInherit: true
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - s3:GetObject
+        Resource: "arn:aws:s3:::${file(./sls-config.yml):custom.s3LibCache}/*"
+
+  install:
+    handler: serverless/handler.install
+    memorySize: 2048
+    timeout: 900
+    vpc:
+      securityGroupIds: ${file(./sls-config.yml):custom.vpc.securityGroupIds}
+      subnetIds:
+        - ${file(./sls-config.yml):custom.vpc.subnetIds.0}
+    fileSystemConfig:
+      arn: ${file(./sls-config.yml):custom.efsArn}
+      localMountPath: /mnt/duino-data
+    events:
+      - schedule: cron(33 0 1 * ? *)
+    iamRoleStatementsInherit: true
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - cloudformation:CreateStack
+          - cloudformation:DeleteStack
+          - cloudformation:DescribeStacks
+        Resource: "arn:aws:cloudformation:${self:provider.region}:*:*"
+      - Effect: "Allow"
+        Action:
+          - ec2:DescribeAvailabilityZones
+          - ec2:DescribeAccountAttributes
+          - ec2:CreateNatGateway
+          - ec2:DescribeNatGateways
+          - ec2:DeleteNatGateway
+          - ec2:CreateRouteTable
+          - ec2:DescribeRouteTables
+          - ec2:DeleteRouteTable
+          - ec2:CreateRoute
+          - ec2:DescribeRoutes
+          - ec2:DeleteRoute
+          - ec2:AllocateAddress
+          - ec2:DescribeAddresses
+          - ec2:ReleaseAddress
+          - ec2:CreateSubnet
+          - ec2:DescribeSubnets
+          - ec2:ModifySubnetAttribute
+          - ec2:DeleteSubnet
+          - ec2:AssociateRouteTable
+          - ec2:DisassociateRouteTable
+        Resource: "*"
+    

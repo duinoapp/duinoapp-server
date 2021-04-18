@@ -26,7 +26,7 @@ services:
     container_name: duinoapp
     restart: unless-stopped
     volumes:
-      - duinoapp-lib-downloads:/data
+      - duinoapp-lib-downloads:/mnt/duino-data/lib-downloads
     environment: # update these, server info displayed to users
       - SERVER_INFO_NAME=Example Server
       - SERVER_INFO_LOCATION=Australia/Sydney

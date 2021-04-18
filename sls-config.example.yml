@@ -1,0 +1,18 @@
+# This is the config for running on serverless, fill out this file and then rename it to sls-config.yml, then use sls deploy
+
+# Warning! It is recommended to use the docker version, serverless is more for large-scale use
+# Please contact mrfrase3 before attempting to set this up yourself
+custom:
+  region: us-east-2
+  stage: prod
+  profile: default
+  vpcId: vpc-abcd1234 # create or select an existing VPC and add its ID here
+  # publicSubnetCIDR: '172.31.128.0/24' # uncomment and change 172.31 if your VPC uses a different IP range
+  vpc:
+    securityGroupIds:
+      - sg-abcd1234 # add a security group to the VPC and add it's ID here
+    subnetIds:
+      - subnet-abcd1234 # specify thg subnet IDs here for the VPC
+      - subnet-1234abcd
+  efsArn: # create an EFS and access point, add the ARN for the access point here
+  s3LibCache: duinoapp-lib-cache # create a private S3 bucket within the same region

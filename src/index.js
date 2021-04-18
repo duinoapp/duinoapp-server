@@ -4,27 +4,16 @@ const socketio = require('socket.io');
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
-const auth = require('http-auth');
-const authConnect = require('http-auth-connect');
-const StatusMonitor = require('express-status-monitor');
 
 const info = require('./actions/info');
 const program = require('./actions/program');
+const { libPath } = require('./utils/files');
+const downloadFile = require('./utils/download-file');
 
 const app = express();
 const server = http.Server(app);
 const io = socketio(server);
 server.listen(process.env.PORT || 3030);
-
-if (process.env.MONITOR_LOGIN) {
-  const statusMonitor = StatusMonitor({ path: '', websocket: io });
-  const basic = auth.basic({ realm: 'Monitor Area' }, (user, pass, callback) => {
-    const [adminUser, adminPass] = process.env.MONITOR_LOGIN.split(':');
-    callback(user === adminUser && pass === adminPass);
-  });
-  app.use(statusMonitor.middleware);
-  app.get('/status', authConnect(basic), statusMonitor.pageRoute);
-}
 
 app.options('*', cors());
 app.use(cors());
@@ -55,7 +44,7 @@ app.set('trust proxy', 1); // trust first proxy
 
 app.get('/version', (req, res) => res.json({ version: '0.0.1', program: 'chromeduino' }));
 
-app.get('/boards', (req, res) => res.json(info.legacyBoards));
+app.get('/boards', (req, res) => info.legacyBoards(null, (data) => res.json(data)));
 
 app.get('/libraries', (req, res) => info.libraries(null, (data) => res.json(data)));
 
@@ -67,4 +56,32 @@ app.post('/compile', async (req, res) => {
   }
 });
 
+app.post('/v3/compile', (req, res) => {
+  const socket = {};
+  program.compile(req.body, socket, (data) => {
+    res.json(data);
+    if (socket.tmpDir) socket.tmpDir.cleanup();
+  });
+});
+app.get('/v3/info/server', (req, res) => {
+  info.server(null, (data) => res.json(data));
+});
+app.get('/v3/info/cores', (req, res) => {
+  info.cores(null, (data) => res.json(data));
+});
+app.get('/v3/info/boards', (req, res) => {
+  info.boards(null, (data) => res.json(data));
+});
+app.get('/v3/info/libraries', (req, res) => {
+  info.librariesSearch(req.query, null, (data) => res.json(data));
+});
+app.post('/v3/libraries/cache', (req, res) => {
+  const { libs } = req.body;
+  Promise.all(libs.map(async (lib) => {
+    const filePath = libPath(lib.url);
+    await downloadFile(lib.url, filePath, null, null, true);
+  })).then(() => res.status(204).send());
+});
+
 console.log(`🚀 Server Launched on http://localhost:${process.env.PORT || 3030}`);
+module.exports = app;
