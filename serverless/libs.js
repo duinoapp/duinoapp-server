@@ -11,7 +11,7 @@ module.exports.cache = async (e) => {
   if (e.source === 'aws.events') return Promise.resolve({ statusCode: 204 });
   const { libs } = typeof e.body === 'string' ? JSON.parse(e.body) : e.body;
   const newLibs = [];
-  console.log(libs);
+  // console.log(libs);
 
   await Promise.all(libs.map(async (lib) => {
     const path = libPath(lib.url);
@@ -31,7 +31,7 @@ module.exports.cache = async (e) => {
 
 module.exports.save = async (e) => {
   const { libs } = e;
-  console.log(libs);
+  // console.log(libs);
 
   await Promise.all(libs.map(async (lib) => {
     const path = libPath(lib.url);

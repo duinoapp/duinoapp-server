@@ -18,20 +18,23 @@ module.exports.server = (socket, done) => done && done({
 
 
 module.exports.librariesSearch = async (data, socket, done) => {
-  console.log('loading in libs');
   const libs = await loadLibs();
-  console.log('done loading in libs');
   const limit = Math.min(Math.max(data.limit || 10, 1), 100);
   const skip = Math.max(data.skip || 0, 0);
   const reg = searchRegex(data.search);
   const { sortBy = 'name' } = data;
   const sortDesc = !(typeof data.sortDesc === 'undefined' || `${data.sortDesc}` === 'false');
-  const res = libs.filter((lib) => reg.test(lib.name)).sort((a, b) => {
-    const ai = `${a[sortBy]}`.toLowerCase();
-    const bi = `${b[sortBy]}`.toLowerCase();
-    if (ai === bi) return 0;
-    return (ai < bi ? -1 : 1) * (sortDesc ? -1 : 1);
-  });
+  const eq = (a, b) => a.toLowerCase() === b.toLowerCase();
+  const res = [
+    ...libs.filter((lib) => eq(lib.name, data.search)),
+    ...libs.filter((lib) => !eq(lib.name, data.search) && reg.test(lib.name))
+      .sort((a, b) => {
+        const ai = `${a[sortBy]}`.toLowerCase();
+        const bi = `${b[sortBy]}`.toLowerCase();
+        if (ai === bi) return 0;
+        return (ai < bi ? -1 : 1) * (sortDesc ? -1 : 1);
+      }),
+  ];
   const response = {
     limit, skip, total: res.length, data: res.slice(skip * limit, (skip + 1) * limit),
   };

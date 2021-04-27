@@ -17,8 +17,9 @@ const get = async (key, file) => {
 
 const has = async (key) => {
   try {
-    const res = await s3.headObject({ Key: key, Bucket: sls.custom.s3LibCache }).promise();
-    console.log(res);
+    // const res =
+    await s3.headObject({ Key: key, Bucket: sls.custom.s3LibCache }).promise();
+    // console.log(res);
     return true;
   } catch (err) {
     console.error(err);
