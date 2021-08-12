@@ -43,7 +43,7 @@ const loadLibs = async () => {
 
 const supportedCores = [
   'arduino:avr',
-  // 'arduino:samd',
+  'arduino:samd',
   'esp8266:esp8266',
   'arduino:megaavr',
   'atmel-avr-xminis:avr',
