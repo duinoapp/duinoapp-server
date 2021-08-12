@@ -18,7 +18,7 @@ module.exports = (commands, args, socket, options) => new Promise((resolve) => {
     ...(Array.isArray(commands) ? commands : commands.split('.')),
     ...(Array.isArray(args) ? args : [args]).map((arg) => `${`${arg}`.replace(/"/g, '')}`),
     ...(cliArgs).split(' '),
-  ], { cwd: socket ? socket.tmpDir.path : `${__dirname}/../../`, env: { HOME: '/mnt/duino-data' } });
+  ], { cwd: socket ? socket.tmpDir.path : `${__dirname}/../../`, env: { HOME: '/mnt/duino-data', PATH: process.env.PATH } });
   exec.stdout.on('data', (data) => log(data));
   exec.stderr.on('data', (data) => log(data));
 
