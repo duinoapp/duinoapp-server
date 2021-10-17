@@ -17,7 +17,7 @@ module.exports = async (supportedCores) => {
       if (!line.includes('=')) return line;
       const key = line.replace(/=.*/, '');
       let newLine = line;
-      if (!/\.(upload\.|build\.mcu)/.test(key)) newLine = '';
+      if (!/\.(upload\.|build\.(mcu|bootloader_addr|boot|flash_freq))/.test(key)) newLine = '';
       return newLine;
     }).join('\n');
     return properties.parse(file, { namespaces: true });
