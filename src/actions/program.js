@@ -62,7 +62,7 @@ const program = {
         }
       } else if (fqbn.indexOf('esp32') === 0) {
         const boards = await json.loadLargeData('boards');
-        const baseFqbn = fqbn.split(':').slice(0, 4).join(':');
+        const baseFqbn = fqbn.split(':').slice(0, 3).join(':');
         const board = boards.find((b) => b.fqbn === baseFqbn);
         if (board) {
           const flashFreq = `${
@@ -75,7 +75,8 @@ const program = {
             || (board.config_options.find((o) => o.option === 'FlashMode')
               || { values: [{ selected: true, value: '' }] }).values.find((v) => v.selected).value
             || board.properties.build.boot;
-          const espToolsPath = '/mnt/duino-data/.arduino15/packages/esp32/hardware/esp32/1.0.6/tools';
+          const [version] = await fs.readdir('/mnt/duino-data/.arduino15/packages/esp32/hardware/esp32/');
+          const espToolsPath = `/mnt/duino-data/.arduino15/packages/esp32/hardware/esp32/${version}/tools`;
           let bootPath = `${espToolsPath}/sdk/bin/bootloader_${flashMode}_${flashFreq}.bin`;
           // account for the new path for the bin in the next arduino-esp32 release. (2021-07-18)
           if (!(await exists(bootPath))) {
