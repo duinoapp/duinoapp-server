@@ -15,9 +15,9 @@ module.exports = async (supportedCores) => {
     file = file.replace(/(\n\r)|(\n)|(\r)/g, '\n');
     file = file.split('\n').map((line) => {
       if (!line.includes('=')) return line;
-      const key = line.replace(/=.*/, '');
+      const key = line.replace(/=.*/, '=');
       let newLine = line;
-      if (!/\.(upload\.|build\.(mcu|bootloader_addr|boot|flash_freq))/.test(key)) newLine = '';
+      if (!/\.(upload\.\w+=|build\.(mcu|bootloader_addr|boot|flash_freq))/.test(key)) newLine = '';
       return newLine;
     }).join('\n');
     return properties.parse(file, { namespaces: true });
@@ -71,13 +71,13 @@ module.exports = async (supportedCores) => {
         cpuOpt.values.forEach((cpuVal) => {
           legacyBoards[`${board.fqbn}:cpu=${cpuVal.value}`] = {
             name: `${board.name} / ${cpuVal.value_label}`,
-            upload_speed: board.properties.upload.speed,
+            upload_speed: board.properties.upload && board.properties.upload.speed,
           };
         });
       } else {
         legacyBoards[board.fqbn] = {
           name: board.name,
-          upload_speed: board.properties.upload.speed,
+          upload_speed: board.properties.upload && board.properties.upload.speed,
         };
       }
     });
