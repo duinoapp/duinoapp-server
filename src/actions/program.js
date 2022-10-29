@@ -5,15 +5,6 @@ const cli = require('../utils/arduino-exec');
 const tmpFiles = require('../utils/files');
 const json = require('../utils/json');
 
-const exists = async (path) => {
-  try {
-    await fs.access(path);
-    return true;
-  } catch (err) {
-    Math.random(err);
-    return false;
-  }
-};
 
 const program = {
 
@@ -77,16 +68,11 @@ const program = {
             || board.properties.build.boot;
           const [version] = await fs.readdir('/mnt/duino-data/.arduino15/packages/esp32/hardware/esp32/');
           const espToolsPath = `/mnt/duino-data/.arduino15/packages/esp32/hardware/esp32/${version}/tools`;
-          let bootPath = `${espToolsPath}/sdk/bin/bootloader_${flashMode}_${flashFreq}.bin`;
-          // account for the new path for the bin in the next arduino-esp32 release. (2021-07-18)
-          if (!(await exists(bootPath))) {
-            bootPath = `${espToolsPath}/sdk/${board.properties.build.mcu}/bin/bootloader_${flashMode}_${flashFreq}.bin`;
-          }
           try {
             const appBin = await fs.readFile(`${socket.sketchPath}/output/${ref}.ino.bin`, 'base64');
             const partBin = await fs.readFile(`${socket.sketchPath}/output/${ref}.ino.partitions.bin`, 'base64');
             const app0Bin = await fs.readFile(`${espToolsPath}/partitions/boot_app0.bin`, 'base64');
-            const bootBin = await fs.readFile(bootPath, 'base64');
+            const bootBin = await fs.readFile(`${socket.sketchPath}/output/${ref}.ino.bootloader.bin`, 'base64');
             response.files = [
               { data: app0Bin, address: 0xe000 },
               { data: bootBin, address: Number(board.properties.build.bootloader_addr) || 0x1000 },

@@ -13,7 +13,8 @@ RUN chmod +x /home/duino/setup/*.sh
 
 # RUN mkdir /home/duino
 RUN chown duino:duino /home/duino -R
-RUN apt-get update && apt-get install build-essential python-pip -y
+RUN apt-get update && apt-get install build-essential python-pip python-serial python3-serial -y
+
 RUN pip install pyserial
 
 WORKDIR /home/duino
