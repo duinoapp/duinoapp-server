@@ -32,7 +32,7 @@
     "eslint": "^6.4.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.18.2",
-    "serverless": "^2.31.0",
+    "serverless": "^2.72.3",
     "serverless-iam-roles-per-function": "^3.1.0"
   }
 }
