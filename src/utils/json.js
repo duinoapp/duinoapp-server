@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { Type } = require('js-binary');
+const _ = require('lodash');
 
 const parseCache = {};
 
@@ -22,10 +23,10 @@ const libSchema = new Type([{
   types: ['string'],
   resources: {
     url: 'string',
-    archivefilename: 'string',
+    archive_filename: 'string',
     checksum: 'string',
     size: 'uint',
-    cachepath: 'string',
+    cache_path: 'string',
   },
   urls: [{ version: 'string', url: 'string' }],
   'paragraph?': 'string',
@@ -38,11 +39,11 @@ const boardSchema = new Type([{
   fqbn: 'string',
   name: 'string',
   version: 'string',
-  propertiesId: 'string',
+  properties_id: 'string',
   package: {
     maintainer: 'string',
     url: 'string',
-    websiteURL: 'string',
+    website_url: 'string',
     name: 'string',
     help: {
       online: 'string',
@@ -53,18 +54,19 @@ const boardSchema = new Type([{
     architecture: 'string',
     category: 'string',
     url: 'string',
-    archiveFileName: 'string',
+    archive_filename: 'string',
     checksum: 'string',
     size: 'uint',
     name: 'string',
   },
   'official?': 'boolean',
   'properties?': 'json',
-  'identification_pref?': [
+  'identification_properties?': [
     {
-      usbID: {
-        VID: 'string',
-        PID: 'string',
+      properties: {
+        'vid?': 'string',
+        'pid?': 'string',
+        'board?': 'string',
       },
     },
   ],
@@ -86,9 +88,25 @@ const boardSchema = new Type([{
 const getProps = (type) => {
   switch (type) {
   case 'libs':
-    return { file: '/mnt/duino-data/libs-processed.jsbin', schema: libSchema };
+    return {
+      file: '/mnt/duino-data/libs-processed.jsbin',
+      schema: libSchema,
+      keepFields: [
+        'name', 'author', 'version', 'maintainer', 'sentence',
+        'website', 'category', 'types', 'resources', 'urls',
+        'paragraph', 'dependencies', 'architectures',
+      ],
+    };
   case 'boards':
-    return { file: '/mnt/duino-data/boards-processed.jsbin', schema: boardSchema };
+    return {
+      file: '/mnt/duino-data/boards-processed.jsbin',
+      schema: boardSchema,
+      keepFields: [
+        'fqbn', 'name', 'version', 'properties_id', 'package',
+        'platform', 'official', 'properties', 'identification_properties',
+        'config_options',
+      ],
+    };
   default:
     throw new Error('Unknown type');
   }
@@ -97,6 +115,17 @@ const getProps = (type) => {
 const saveLargeData = async (type, data) => {
   const { file, schema } = getProps(type);
   await fs.promises.writeFile(file, schema.encode(data));
+};
+
+const saveDataAsJSONL = async (type, data) => {
+  const { file, keepFields } = getProps(type);
+  const stream = fs.createWriteStream(file.replace('.jsbin', '.jsonl'));
+  const asyncWrite = (datum) => new Promise((resolve) => stream.write(datum, resolve));
+  await data.reduce(async (prev, datum) => {
+    await prev;
+    return asyncWrite(`${JSON.stringify(_.pick(datum, keepFields))}\n`);
+  }, Promise.resolve());
+  return new Promise((resolve) => stream.end(resolve));
 };
 
 const loadLargeData = async (type) => {
@@ -108,5 +137,5 @@ const loadLargeData = async (type) => {
 };
 
 module.exports = {
-  parse, stringify, saveLargeData, loadLargeData,
+  parse, stringify, saveLargeData, loadLargeData, saveDataAsJSONL,
 };

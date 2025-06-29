@@ -85,6 +85,8 @@ module.exports = async (supportedCores) => {
   await json.stringify('/mnt/duino-data/cores-processed.json', processedCores);
   await json.saveLargeData('boards', processedBoards);
   await json.saveLargeData('libs', processedLibs);
+  await json.saveDataAsJSONL('boards', processedBoards);
+  await json.saveDataAsJSONL('libs', processedLibs);
   await json.stringify('/mnt/duino-data/legacy-boards-processed.json', legacyBoards);
   console.log('Done Pre-Processing Data');
 };

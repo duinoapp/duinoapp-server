@@ -64,6 +64,7 @@ app.post('/v3/compile', (req, res) => {
   });
 });
 app.get('/v3/info/server', (req, res) => {
+  // res.setHeader('Cache-Control', 'public, max-age=86400');
   info.server(null, (data) => res.json(data));
 });
 app.get('/v3/info/cores', (req, res) => {
@@ -72,8 +73,20 @@ app.get('/v3/info/cores', (req, res) => {
 app.get('/v3/info/boards', (req, res) => {
   info.boards(null, (data) => res.json(data));
 });
+app.get('/v3/info/boards.jsonl', (req, res) => {
+  res.setHeader('Content-Type', 'application/jsonl');
+  // cache for 1 day
+  // res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.sendFile('/mnt/duino-data/boards-processed.jsonl');
+});
 app.get('/v3/info/libraries', (req, res) => {
   info.librariesSearch(req.query, null, (data) => res.json(data));
+});
+app.get('/v3/info/libraries.jsonl', (req, res) => {
+  res.setHeader('Content-Type', 'application/jsonl');
+  // cache for 1 day
+  // res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.sendFile('/mnt/duino-data/libs-processed.jsonl');
 });
 app.post('/v3/libraries/cache', (req, res) => {
   const { libs } = req.body;

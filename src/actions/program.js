@@ -88,6 +88,8 @@ const program = {
       }
     }
     response.log = libRes + res;
+    // strip the sketch path from the log
+    response.log = response.log.replaceAll(socket.sketchPath, '');
     // tmpFiles.cleanup(socket);
     if (done) done(response);
     return response;

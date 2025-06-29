@@ -25,7 +25,7 @@ const cli = (commands, args, consoleLog = false) => new Promise((resolve) => {
 
 const loadCli = async () => {
   await downloadFile(
-    'https://github.com/arduino/arduino-cli/releases/download/0.13.0/arduino-cli_0.13.0_Linux_64bit.tar.gz',
+    'https://github.com/arduino/arduino-cli/releases/download/v0.35.3/arduino-cli_0.35.3_Linux_64bit.tar.gz',
     '/mnt/duino-data/arduino-cli.tar.gz',
     'untar',
   );
@@ -43,39 +43,45 @@ const loadLibs = async () => {
 
 const supportedCores = [
   'arduino:avr',
-  'arduino:samd',
+  // 'arduino:samd',
   'esp8266:esp8266',
-  'arduino:megaavr',
-  'atmel-avr-xminis:avr',
-  'emoro:avr',
-  'littleBits:avr',
+  // 'arduino:megaavr',
+  // 'atmel-avr-xminis:avr',
+  // 'emoro:avr',
+  // 'littleBits:avr',
   'esp32:esp32',
 ];
 const loadCores = async () => {
   const cores = JSON.parse(await fs.readFile('/mnt/duino-data/cores.json', 'utf-8'));
+  // console.log(cores);
   return cores.reduce(async (a, core, i) => {
     await a;
-    if (!supportedCores.includes(core.ID)) {
-      console.log(`Cores (${i + 1}/${cores.length}) Skipping ${core.Name} (${core.ID})`);
+    if (!supportedCores.includes(core.id)) {
+      console.log(`Cores (${i + 1}/${cores.length}) Skipping ${core.name} (${core.id})`);
       return;
     }
-    console.log(`Cores (${i + 1}/${cores.length}) Installing ${core.Name} (${core.ID})`);
-    await cli('core.install', core.ID, true);
+    console.log(`Cores (${i + 1}/${cores.length}) Installing ${core.name} (${core.id})`);
+    await cli('core.install', core.id, true);
   }, Promise.resolve());
 };
 
 const loadBoards = async () => {
   const res = await cli('board.listall', []);
   const response = JSON.parse(res);
+  // console.log(response);
   console.log(`Compiling ${response.boards.length} board details...`);
   const boards = [];
   await _.chunk(response.boards, 10).reduce(async (a, boardChunk, i) => {
     await a;
     await Promise.all(boardChunk.map(async (board) => {
-      const details = await cli('board.details', [board.FQBN]);
+      const details = JSON.parse(await cli('board.details', ['-b', board.fqbn, '--full']));
+      if (!details.name) {
+        console.log('Skipping', board.fqbn, details);
+        return;
+      }
       boards.push({
-        fqbn: board.FQBN || board.fqbn,
-        ...JSON.parse(details),
+        fqbn: board.fqbn,
+        ...details,
       });
     }));
     console.log((i + 1) * 10, response.boards.length);
