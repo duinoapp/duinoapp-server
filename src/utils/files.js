@@ -63,6 +63,24 @@ const files = {
       console.log(lib.url, filePath, libPath);
       try {
         await downloadFile(lib.url, filePath, 'unzip', libPath, true);
+        // Rename versioned folder to library name (e.g., TM1637-1.2.0 -> TM1637)
+        // Arduino CLI expects folder names without version suffixes
+        const entries = await fs.readdir(libPath);
+        for (const entry of entries) {
+          // Check if folder matches pattern: LibName-version (e.g., TM1637-1.2.0)
+          const versionMatch = entry.match(/^(.+)-\d+\.\d+\.\d+$/);
+          if (versionMatch) {
+            const baseName = versionMatch[1];
+            const oldPath = path.join(libPath, entry);
+            const newPath = path.join(libPath, baseName);
+            // Only rename if target doesn't exist
+            try {
+              await fs.access(newPath);
+            } catch {
+              await fs.rename(oldPath, newPath);
+            }
+          }
+        }
       } catch (err) {
         return err;
       }
